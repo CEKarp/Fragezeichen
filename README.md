@@ -673,3 +673,96 @@ ist die richtige Antwort auf ein negatives Ergebnis, sondern:
 Ein negativer Befund ist oft ein Debugging-Problem, keine Grenze
 der Methode.
 
+## Herkunft: Blinde Maschine, Enigma-Frauen, Mathe 2
+
+Dieses Projekt begann nicht mit der Frage "kann ein GA Addierer bauen".
+Es begann mit einer anderen Frage: **Kann eine Maschine ohne Vorwissen
+eine Struktur finden, die funktioniert?**
+
+Die Metapher war die Enigma-Frau ohne Crib. Die Frauen in Bletchley Park
+hatten Struktur: bekannte Klartextstuecke, Rotorenwissen, deutsche
+Sprachstatistik. Sie haben die Enigma geknackt, **weil** sie Vorwissen
+hatten. Die Frage war: Was findet eine Maschine, die nichts hat — nur
+Eingaben, Ausgaben und die Frage "stimmt das?".
+
+"Mathe 2" war die zweite Metapher dafuer: bei einem Mathe-2-Test geht
+es nicht um Rechnen, sondern um schrittweises Schlussfolgern ohne
+Vorwissen. Ein Suchscheinwerfer, der den Raum abtastet, bis er die
+Loesung findet. Nicht durch Wissen, sondern durch systematisches
+Probieren mit Rueckmeldung.
+
+Der GA in diesem Repo ist dieser Suchscheinwerfer. Er hat kein Wissen
+ueber Addierer, keine Cribs, keine Ahnung, was ein Carry ist. Nur 64
+Paare (A, B) und eine Fitness-Funktion.
+
+### Der Fund, den man lesen kann
+
+`tools_decode.py` uebersetzt ein evolviertes Genom in lesbaren
+Pseudo-Code. Fuer das Handgenom (menschlich designt) ergibt das einen
+klassischen Ripple-Carry-Addierer:
+
+    c1 = A0 & B0
+    t1 = A1 ^ B1
+    s1 = t1 ^ c1
+    c2 = (A1 & B1) | (t1 & c1)
+    ...
+
+Ein GA-Lauf auf add3 (300k Evals, Seed 0) findet eine **andere**
+korrekte Schaltung:
+
+    k0 = t1        = A1 ^ B1
+    k4 = t1 ^ s0   (geteilter Zwischenschritt)
+    k6 = k4 ^ k0 = s0   (fuer out0; t1 kuerzt sich raus)
+    k9 = NAND(c1, k4)   (fuer out2; s0 kuerzt sich raus)
+    ...
+
+`k4` wird an zwei Stellen verwendet, aus verschiedenen Gruenden. Die
+Schaltung hat 11 aktive Knoten statt 12 beim Handgenom.
+
+### Was das defensiv bedeutet
+
+**Was messbar ist:** Der GA findet eine korrekte Schaltung, die nicht
+die menschliche Ripple-Carry-Struktur ist. Sie ist auf ungesehenen
+Paaren korrekt (Teil des 31/32-Ergebnisses). Sie ist lesbar.
+
+**Was nicht messbar ist:** Ob der GA "Compiler-Optimierungen" wie
+Common-Subexpression-Elimination oder De Morgan "entdeckt" hat, oder
+ob er nur zufaellig eine redundante Struktur gefunden hat, die
+funktioniert. Beides ist mit diesem Experiment nicht zu unterscheiden.
+Die Aehnlichkeit zu CSE und De Morgan ist eine Beobachtung am
+decodierten Code, keine Messung.
+
+**Was nicht behauptet wird:** Dass diese Schaltung "besser" ist als
+die menschliche. Sie hat einen Knoten weniger, aber weniger Knoten
+heisst nicht besser — der Ripple-Carry ist verstaendlicher, und
+Verstaendlichkeit war nie Teil der Fitness-Funktion.
+
+**Was die Grenze ist:** add3 loest in 31/32 Seeds. add4 in 14/32
+(3Mio Evals) und saettigt. Das ist ein Spielzeug-Addierer auf 64
+Paaren, nicht allgemeine Intelligenz. Die Frage "skaliert blinde
+Suche auf grosse Probleme" ist mit diesem Experiment nicht
+beantwortet — die Saettigung bei add4 deutet an, dass sie es
+vielleicht nicht tut.
+
+### Einordnung gegen verwandte Arbeiten
+
+Im Oktober 2026 hat OpenAI 722 Manuskripte zu 372 mathematischen
+Problemen veroeffentlicht, generiert von einem internen Frontier-
+Modell. Viele Beweise sind in Lean formalisiert, aber nur 162 von
+722 haben ein maschinell geprueftes Hauptresultat. Einzelne Manuskripte
+wurden zurueckgezogen. Peter Scholze und Terence Tao haben oeffentlich
+kritisiert, dass formale Pruefbarkeit nicht Verstaendnis ersetzt.
+
+Der Unterschied zu diesem Repo ist nicht die Qualitaet der Ergebnisse —
+OpenAIs Ergebnisse sind unvergleichlich groesser. Der Unterschied ist
+der **Ansatz**: OpenAIs Modell ist auf dem mathematischen Korpus der
+Menschheit trainiert. Es hat Vorwissen. Es ist die Enigma-Frau, die
+schon alle Buecher ueber Enigma gelesen hat. Der GA in diesem Repo
+hat nichts.
+
+Das macht das Repo nicht besser. Es macht es zu einem **reineren
+Fall**: wenn hier Struktur entsteht, dann nicht aus Trainingsdaten,
+sondern aus Selektion. Das ist ein kleiner Beitrag zu einer grossen
+Frage — und der decodierte Addierer ist der einzige Beweis, den
+dieses Repo fuer diese Frage hat.
+
