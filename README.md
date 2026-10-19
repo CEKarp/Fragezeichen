@@ -329,3 +329,49 @@ GA>Zufall (Delta bleibt).
 
 Was wackelt: die absoluten Fitnesswerte der Matrizen, die Aussage
 "add3/add4 kommen naeher an 1.0" (teilweise Overfitting).
+
+## Kapazitaet vs. Overfitting: 18 vs. 30 Knoten (ehrlich)
+
+Gleiche Matrix, gleiches Budget (50k Evals, POP=30, 5 Seeds), aber
+CGP_NODES=30. Alle Zahlen auf dem 16-Paar-Test-Split, nicht auf
+Trainingsdaten.
+
+| Task | 18K test | 30K test | 18K gap | 30K gap | 18K solved | 30K solved |
+|------|----------|----------|---------|---------|------------|------------|
+| ne3 | 0.8929 | 0.8929 | +0.05 | +0.05 | 2/5 | 1/5 |
+| gt2 | 0.8750 | 0.8750 | 0.00 | 0.00 | 1/5 | 1/5 |
+| gt3 | 0.9000 | 0.8167 | -0.02 | +0.06 | 0/5 | 0/5 |
+| add2 | 0.7188 | **0.8125** | +0.21 | +0.13 | 1/5 | **2/5** |
+| add3 | 0.7146 | 0.7695 | +0.16 | +0.14 | 0/5 | 0/5 |
+| add4 | 0.7855 | 0.7573 | +0.09 | +0.12 | 0/5 | 0/5 |
+
+### Befund: Kapazitaet und Aufgabenkomplexitaet muessen zusammenpassen
+
+1. **add2 profitiert massiv.** Test-Fitness 0.72 -> 0.81, Gap 0.21 -> 0.13,
+   geloest 1/5 -> 2/5. Echte Kapazitaetsverbesserung, kein Overfitting.
+
+2. **add3 profitiert leicht.** 0.71 -> 0.77, Gap fast unveraendert.
+
+3. **add4 und gt3 verlieren.** add4: 0.79 -> 0.76. gt3: 0.90 -> 0.82.
+   Mehr Genomraum = mehr Platz zum Memorieren bei komplexen Aufgaben,
+   ohne dass die echte Loesung gefunden wird.
+
+### Warum die ne3-Zeile wertlos ist
+
+`18K Zufall test: 0.6786` vs. `30K Zufall test: 0.3214`. Das ist keine
+Diskrepanz, das ist die Varianz der Test-Verteilung. Bei 56:8-Klassen-
+verteilung enthaelt der 16-Paar-Test-Split statistisch ~2 Nullen.
+Balanced accuracy ist auf so kleinen, unbalancierten Sets nicht stabil.
+Alle anderen Zufalls-Zeilen sind stabiler, weil die Klassenverteilung
+dort ausgeglichener ist.
+
+### Gesamtantwort auf "hilft mehr Kapazitaet?"
+
+Nicht pauschal. Fuer einfache Aufgaben (add2) ja. Fuer komplexe Aufgaben
+(add4, gt3) nein - dort ueberwiegt das Overfitting-Risiko. Der
+Sweet Spot zwischen "zu klein fuer die Loesung" und "zu gross fuer die
+Trainingsdaten" ist aufgabenspezifisch.
+
+Das ist die ehrliche Antwort auf die Frage, ob 30 Knoten besser sind
+als 18. Es gibt kein allgemeines "mehr ist besser" - es gibt nur
+"passend zur Aufgabe".
