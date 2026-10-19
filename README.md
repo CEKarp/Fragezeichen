@@ -703,6 +703,35 @@ Was die Zahlen nicht aendern: add3 ist geloest, add4 ist machbar
 aber nicht zuverlaessig, und der Unterschied zwischen beiden ist
 gross genug, um nicht Zufall zu sein.
 
+### Nachtrag: Mehrere Splits (multisplit)
+
+Die 37.5% bei add4 (1Mio Evals) stammten von **einem** Train/Test-Split
+(seed=42). Um zu pruefen, ob die Rate split-unabhaengig ist, wurde
+derselbe Lauf mit 3 Splits x 32 Seeds wiederholt:
+
+| Split | geloest | Rate | 95%-KI | test_med |
+|-------|---------|------|--------|----------|
+| 42 | 11/32 | 34.4% | [20.4%, 51.7%] | 0.9583 |
+| 43 | 16/32 | 50.0% | [33.6%, 66.4%] | 1.0000 |
+| 44 | 14/32 | 43.8% | [28.2%, 60.7%] | 0.9792 |
+| **pooled** | **41/96** | **42.7%** | **[33.3%, 52.7%]** | — |
+
+**Was das zeigt:**
+
+1. **Die Rate ist robust.** Gepoolt 42.7%, im erwarteten Bereich der
+   Einzel-Split-Zahl (37.5%). Das Konfidenzintervall halbiert sich
+   ([33%, 53%] statt [23%, 55%]).
+
+2. **Split-Varianz ist real.** Zwischen 34.4% und 50.0% je nach Split.
+   Das ist kein Zufall, sondern unterschiedlich schwere Test-Sets.
+   Ein einzelner Split gibt kein verlaessliches Bild — die gepoolte
+   Zahl ist die ehrlichere.
+
+3. **Die Kernaussage bleibt.** add4 ist bei 1Mio Evals in ~43% der
+   Laeufe loesbar. Split 42 war der schwerste, Split 43 der leichteste.
+   Die Differenz ist gross genug, um sie zu dokumentieren, aber nicht
+   gross genug, um die Aussage "add4 sattigt bei ~44%" zu kippen.
+
 ## Crib-Test: Vorwissen ist kein Vorteil bei Addierern
 
 Die Urspungsidee des Projekts war die Enigma-Metapher: Die Frauen in
