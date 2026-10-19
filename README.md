@@ -178,3 +178,48 @@ Richtung gelaufen ist.
 GA direkt bleibt die beste Strategie. Das Curriculum ist damit
 endgueltig als schaedlich belegt, nicht nur als "schlecht
 implementiert".
+
+## Mini-Enigma: Crib hilft, reicht aber nicht
+
+Ein 4-Bit-Enigma (16 Symbole, 3 Rotoren, Reflektor, 4096 Keys)
+als Test der Frage: reicht ein Crib, damit der GA den Schluessel
+findet?
+
+Wichtiger Hinweis vorab: die erste Version hatte einen Bug in
+`rotor_backward` — die Maschine war nicht symmetrisch, der wahre
+Schluessel gab `fit=0.0`. Erst nach der Verifikationszeile
+(`fitness_with_crib(TRUE_KEY) == 1.0`) waren die Laeufe gueltig.
+Alle frueheren Zahlen zum Mini-Enigma waren Artefakte des Bugs.
+
+### Ergebnis nach dem Fix
+
+10 Seeds, 100.000 Evals, Crib = bekannte Klartextzeichen:
+
+| Crib | Median fit | Max | geloest |
+|------|-----------|-----|---------|
+| 8/16 | 0.7500 | 1.0 | 1/10 |
+| 10/16 | 0.7000 | 1.0 | 2/10 |
+| 12/16 | 0.6667 | 1.0 | 3/10 |
+| 14/16 | 0.5714 | 1.0 | 3/10 |
+
+### Was die gegenlaeufigen Trends bedeuten
+
+Der Median **sinkt**, waehrend die Loesungsrate **steigt**. Das ist
+kein Widerspruch: mehr Crib macht falsche Schluessel schlechter
+(das Signal-Rausch-Verhaeltnis verbessert sich), waehrend der wahre
+Schluessel bei 1.0 bleibt. Der Gradient wird steiler.
+
+Aber: auch mit 14/16 Crib loest der GA nur 3 von 10 Mal. Das ist
+derselbe Charakter wie bei `gt3` — der GA findet das Optimum, wenn
+er zufaellig in die richtige Region startet, aber nicht zuverlaessig.
+
+### Die Bruecke zur echten Enigma
+
+Mehr Crib = steilerer Gradient = mehr Loesungen. Aber Evolution
+allein reicht nicht fuer zuverlaessiges Loesen. Bletchley hatte
+nicht nur Cribs, sondern **systematische Methoden** (Turing's Bombe:
+alle Rotorpositionen durchprobieren, Crib an jeder Position testen).
+
+Mit 26 Buchstaben statt 16 und ohne Odometrie waere der Suchraum
+fuer den GA nochmal deutlich haerter. Die Bombe war keine
+Rechenleistung — sie war ein anderer Suchalgorithmus.
