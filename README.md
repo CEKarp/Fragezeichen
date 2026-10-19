@@ -1,11 +1,45 @@
 # Fragezeichen
 
-Ein cocotb-Harness, das einen genetischen Algorithmus gegen drei verschiedene
-Verilog-DUTs laufen lässt — mit einer positiven Kontrolle, einer negativen
-Kontrolle und einem ehrlichen Negativergebnis.
+Ein cocotb-Harness, das einen selbstjustierenden genetischen Algorithmus
+gegen CGP-Schaltungen laufen lässt — mit dokumentierten Sackgassen und
+einem ueberraschenden Durchbruch.
 
-**Was das nicht ist:** kein Durchbruch in evolvierbarer Hardware. Was es ist:
-ein funktionierendes Framework mit dokumentierten Grenzen.
+![Ergebnis](breakthrough.png)
+
+## Key Findings
+
+- **Der 3-Bit-Addierer ist geloest.** Selbstjustierender CGP findet in
+  **31/32 Seeds** (97%) eine Schaltung, die auf 16 ungesehenen Paaren
+  korrekt addiert. 30 Knoten, 300k Evals, 100 Sekunden auf 8 Kernen.
+- **Der 4-Bit-Addierer ist machbar, aber nicht zuverlaessig.** Erfolgsrate
+  steigt von 5/32 (300k) auf 12/32 (1Mio) auf 14/32 (3Mio) — Saettigung
+  bei **~44%**. Die Grenze ist die Datengroesse (48 Trainingspaare), nicht
+  die Rechenzeit.
+- **Zwei Implementierungsfehler limitierten den GA vorher.**
+  16-Quellen-Selektoren (67% tote Bits bei 30 Knoten) und fehlende
+  Suchheuristiken. Beide behoben, der GA geht von 0/10 auf 31/32.
+- **Fitness-Design ist der entscheidende Hebel.** Hamming-Distanz ist
+  deceptive (Konstanten gewinnen), balanced accuracy nicht. Der Wechsel
+  loeste den ersten Sprung aus.
+- **Ein negatives Ergebnis ist oft ein Debugging-Problem, keine Grenze
+  der Methode.** Der erste Reflex war "der GA ist zu schwach". Vier
+  Sackgassen spaeter: es waren zwei Bugs und ein Budgetproblem.
+
+## Was das nicht ist
+
+Kein Enigma-Knacker. Kein Beweis, dass Evolution allgemein funktioniert.
+Ein **ehrliches Experiment** mit dokumentierten Fehlern, Sackgassen und
+Korrekturen — und einem besseren Ergebnis als anfangs gedacht.
+
+## Reproduktion in fuenf Befehlen
+
+    python3 -m venv .venv && source .venv/bin/activate
+    pip install "cocotb>=1.9" && pkg install -y iverilog matplotlib
+    sed -i 's/false/true/' .venv/pyvenv.cfg
+    python3 plot_breakthrough.py
+    python3 tools_parallel.py add3 300000 32 30
+
+
 
 ## Die drei DUTs
 
