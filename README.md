@@ -1,4 +1,4 @@
-# Fragezeichen
+# Self-Adaptive CGP
 
 Ein cocotb-Harness, das einen selbstjustierenden genetischen Algorithmus
 gegen CGP-Schaltungen laufen lässt — mit dokumentierten Sackgassen und
