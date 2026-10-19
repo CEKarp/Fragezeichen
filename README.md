@@ -224,67 +224,74 @@ Mit 26 Buchstaben statt 16 und ohne Odometrie waere der Suchraum
 fuer den GA nochmal deutlich haerter. Die Bombe war keine
 Rechenleistung — sie war ein anderer Suchalgorithmus.
 
-## Parameter-Matrix: sechs Aufgaben, zwei Strategien
+## Ehrliche Matrix: Train/Test-Split
 
-Echte Aufgaben-Definitionen in `tools_tasks.py` (ne3, gt2, gt3 als
-Vergleicher; add2/add3/add4 als Additionen). 50.000 Evals, POP=30,
-5 Seeds.
+Alle früheren Matrix-Ergebnisse (18 und 30 Knoten) haben auf denselben
+64 Paaren gemessen, auf denen der GA optimiert hat. Ein GA mit 180-300
+Bit Genom kann auf 64 Trainingsfällen leicht eine Lookup-Tabelle bauen
+statt einer Schaltung. Das ist kein Rechnen — das ist Auswendiglernen.
 
-| Task | Zufall Median | GA Median | Delta | GA geloest |
-|------|---------------|-----------|-------|------------|
-| ne3 | 0.7857 | 0.7857 | +0.0000 | 0/5 |
-| gt2 | 0.8667 | 0.8667 | +0.0000 | 0/5 |
-| gt3 | 0.8333 | 0.8810 | +0.0477 | 0/5 |
-| add2 | 0.8125 | 0.8750 | +0.0625 | **2/5** |
-| add3 | 0.7292 | 0.8750 | **+0.1458** | 0/5 |
-| add4 | 0.7195 | 0.8715 | **+0.1520** | 0/5 |
+Test: 48 Paare Training, 16 Paare ungesehener Test. Der GA optimiert
+auf Train, wir messen auf Test. Gap = Train - Test. `gelöst` zählt nur,
+wenn **Test** = 1.0.
 
-### Was die Matrix zeigt
+### Ergebnis (18 Knoten, 50k Evals, POP=30, 5 Seeds)
 
-1. **Der GA-Vorteil waechst mit der Schwierigkeit.** Bei ne3 (trivial)
-   kein Unterschied, bei add3/add4 (schwer) +0.15. Der GA lohnt sich
-   am meisten, wo die Aufgabe nicht durch Glueck loesbar ist.
+| Task | Zufall test | GA test | GA gap | GA solved |
+|------|-------------|---------|--------|-----------|
+| ne3 | 0.6786 | 0.8929 | +0.0476 | 2/5 |
+| gt2 | 0.8750 | 0.8750 | +0.0000 | 1/5 |
+| gt3 | 0.7833 | 0.9000 | -0.0224 | 0/5 |
+| add2 | 0.6875 | 0.7188 | +0.2083 | 1/5 |
+| add3 | 0.6687 | 0.7146 | +0.1611 | 0/5 |
+| add4 | 0.6260 | 0.7855 | +0.0885 | 0/5 |
 
-2. **Die Kletter-Klippe bleibt.** Nur add2 wird geloest (2/5 Seeds).
-   Alle anderen Aufgaben bleiben bei 0.87-0.88, egal wie nah an 1.0.
+### Drei Änderungen gegenüber der alten Matrix
 
-3. **Metrik-Warnung:** balanced accuracy gibt bei stark unausgeglichenen
-   Klassen (ne3: 56/8) auch fuer Zufallsgenome hohe Werte (0.79).
-   Die absoluten Zahlen sind nur relativ aussagekraeftig, nicht absolut.
+1. **add2 und add3 haben massiv overfittet.** `add2: 1.0 -> 0.7188`,
+   `add3: 0.8750 -> 0.7146`. Die frühere "3/5 gelöst" bei add2 war
+   fast vollständig Lookup-Tabellen. Nur ein Seed baut echte Addition.
 
-## Kapazitaet vs. Suchstrategie: 18 vs. 30 Knoten
+2. **"GA-Vorteil wächst mit Schwierigkeit" hält nicht.** Alt:
+   add3 +0.15, add4 +0.15. Neu: add3 +0.05, add4 +0.16. Der Trend
+   ist nicht monoton — add3 kollabiert unter Test.
 
-Gleiche Matrix, gleiches Budget (50k Evals, POP=30, 5 Seeds), aber
-CGP_NODES=30 statt 18. Die Frage: liegt die Grenze an der Kapazitaet
-oder an der Suche?
+3. **gt3 generalisiert.** Negativer Gap (-0.02): der GA baut echte
+   Vergleicher, keine Lookup-Tabellen. Das ist ein echter Befund.
 
-| Task | 18K Median | 30K Median | 18K Max | 30K Max | 18K gel. | 30K gel. |
-|------|-----------|-----------|---------|---------|----------|----------|
-| ne3 | 0.7857 | 0.9286 | 0.9286 | 0.9286 | 0/5 | 0/5 |
-| gt2 | 0.8667 | 0.9000 | 0.9500 | 0.9500 | 0/5 | 0/5 |
-| gt3 | 0.8810 | 0.8810 | 0.8810 | 0.9286 | 0/5 | 0/5 |
-| add2 | 0.8750 | **1.0000** | 1.0000 | 1.0000 | 2/5 | **3/5** |
-| add3 | 0.8750 | 0.8750 | 0.9167 | 0.9583 | 0/5 | 0/5 |
-| add4 | 0.8715 | 0.8554 | 0.8958 | 0.9251 | 0/5 | 0/5 |
+### Warnung: ne3-Test ist unzuverlässig
 
-### Antwort: beides
+`ne3` zeigt einen scheinbaren GA-Vorteil (+0.21), aber das ist ein
+Artefakt der Klassenverteilung. 56:8 bei 64 Paaren — der 16-Paar-Test
+enthält statistisch nur ~2 Nullen. Ein Zufallsgenom, das konstant 1
+ausgibt, wird auf Test schlechter bewertet als auf Train — nicht weil
+es schlechter ist, sondern weil die Test-Verteilung anders ist.
+Balanced accuracy ist auf so kleinen, unbalancierten Sets nicht stabil.
 
-1. **Kapazitaet hilft.** add2 wird mit 30 Knoten zuverlaessiger geloest
-   (3/5 statt 2/5, Median 1.0). add3 und add4 kommen naeher an 1.0
-   (Max 0.9583 bzw. 0.9251).
+### Was von den früheren Befunden hält
 
-2. **Kapazitaet reicht nicht.** 67% mehr Knoten bringen keine Loesung
-   fuer add3/add4. Der letzte Sprung auf 1.0 bleibt aus.
+**Hält:**
+- GA > Zufall auf Test für 5 von 6 Tasks
+- gt3 generalisiert (negativer Gap)
+- add4 hat echten Vorteil (+0.16) mit kleinem Overfitting (+0.09)
+- mini_alu / blind_seed (kein CGP, kein Overfitting-Problem)
+- Hamming vs balanced (unterschiedliche Metriken, kein Datenleck)
+- Curriculum schadet (Vergleich zwischen Strategien, keine Absolutzahlen)
 
-3. **Der Preis von mehr Knoten.** add4-Median sinkt leicht (0.8715 auf
-   0.8554): groesserer Suchraum bei gleicher Population. Der Max steigt,
-   der Median sinkt - einige Seeds finden bessere Loesungen, andere
-   verlieren sich.
+**Wackelt:**
+- Die absoluten Zahlen beider früheren Matrizen sind zu optimistisch
+- "GA löst add2 zuverlässig" -> nur 1/5 Seeds lösen auf Test
+- "GA-Vorteil wächst mit Schwierigkeit" -> add3 kollabiert
+- "18 vs 30 Knoten: add3/add4 kommen näher an 1.0" — die 30-Knoten-
+  Zahlen waren auch Trainingsdaten. Ein ehrlicher 30-Knoten-Lauf
+  mit Test-Split steht aus.
 
-Die Kletter-Klippe verschiebt sich mit mehr Kapazitaet, verschwindet
-aber nicht. Das ist konsistent mit der gt3-Beobachtung: der GA kommt
-nah heran (61/64, 59/64), aber der letzte Sprung braucht mehr als
-mehr Platz.
+### Die früheren Matrizen
+
+`matrix_18nodes_trainonly.csv` und `matrix_30nodes_trainonly.csv`
+sind nicht falsch — sie zeigen, was der GA auf den Trainingsdaten
+erreicht. Aber sie sind nicht die ehrliche Leistung. Die ehrliche
+Zahl ist `test`, nicht `train`.
 
 ## Overfitting-Test: Findet der GA Schaltungen oder Lookup-Tabellen?
 
