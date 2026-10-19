@@ -426,3 +426,58 @@ Der Kernbefund bleibt unter beiden Metriken: der GA hat echte
 Vorteile auf add3/add4, findet aber keine Loesung, die auf
 ungesehenen Paaren 1.0 erreicht. Die Metrik-Wahl beeinflusst,
 welche Tasks als "geloest" gelten, nicht den grundsaetzlichen Befund.
+
+## Parsimonie: Skalar schlaegt Pareto
+
+Der Overfitting-Gap (add2: +0.21, add3: +0.16) zeigt, dass der GA
+Lookup-Tabellen baut statt Schaltungen. Parsimonie (Bestrafung
+aktiver Knoten) als Regularisierung.
+
+### Skalarer Strafterm: fitness = acc - lambda * n_active_nodes
+
+Sweep ueber lambda, 5 Seeds, Test-Split:
+
+| Task | lambda | train | test | gap | nodes | geloest |
+|------|--------|-------|------|-----|-------|---------|
+| add2 | 0.000 | 0.9271 | 0.9688 | +0.00 | 11 | 1/5 |
+| add2 | 0.005 | 1.0000 | **1.0000** | +0.00 | **7** | **4/10** |
+| add2 | 0.050 | 0.8958 | 0.8125 | +0.08 | 5 | 0/5 |
+| add3 | 0.000 | 0.9032 | 0.7278 | +0.16 | 11 | 0/5 |
+| add3 | 0.001 | 0.8549 | 0.7771 | +0.08 | 7 | 0/5 |
+
+**add2**: lambda=0.005 ist ein echter Sweet Spot. 4/10 Seeds
+finden eine kompakte, generalisierende Loesung (7-9 Knoten, test=1.0).
+**add3**: kein Signal. Die Gaps springen zwischen 0.08 und 0.16,
+kein lambda bringt test ueber 0.78.
+
+### NSGA-II: schlechter als der Skalar-Ansatz
+
+NSGA-II mit Zielen (train_acc, -n_active_nodes), POP=30, 50000 Evals:
+
+| Task | Seeds mit test=1.0 | Knoten |
+|------|-------------------|--------|
+| add2 | 0/6 | 4 |
+| add3 | 0/6 | 4-6 |
+
+Die Pareto-Front kollabiert auf zu kleine Schaltungen. 4-Knoten-Genome
+sind nicht-dominiert von 8-Knoten-Genomen bei aehnlicher Fitness. Die
+Crowding Distance verteilt Rechenzeit gleichmaessig, aber die Knoten-
+strafe wirkt zu frueh - bevor die Schaltung fertig gebaut ist. Der
+skalare Ansatz baut zuerst die Loesung (train=1.0) und minimiert dann
+die Knoten.
+
+Das ist ein bekanntes Muster: Parsimonie als nachtraeglicher Filter
+oder skalarer Strafterm funktioniert besser als Parsimonie als
+Pareto-Ziel.
+
+### Was das fuer das Gesamtprojekt bedeutet
+
+Der Overfitting-Befund bleibt der staerkste Punkt: bei 48 Trainings-
+paaren und 180-300 Bit Genom baut der GA oft Lookup-Tabellen statt
+Schaltungen. Parsimonie hilft lokal (add2, 4/10 Seeds), aber nicht
+generell. Fuer add3 sind 48 Paare zu wenig Information, unabhaengig
+von der Regularisierung.
+
+Die ehrliche Antwort: manchmal generalisiert der GA, mit der richtigen
+Regularisierung, auf einfachen Aufgaben. Nicht zuverlaessig, und nicht
+auf komplexen Aufgaben mit wenig Trainingsdaten.
