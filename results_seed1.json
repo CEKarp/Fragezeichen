@@ -1,0 +1,306 @@
+{
+ "best_fitness": 0.998,
+ "best_genome": "e2ce6f447ed4d5fb",
+ "history": [
+  {
+   "gen": 0,
+   "level": 1,
+   "fit": 0.8981999999999999,
+   "genome": "91b7584a2265b1f5",
+   "tasks": {
+    "calc": 0.499,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 0.5,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 1,
+   "level": 2,
+   "fit": 0.9480999999999999,
+   "genome": "c2ce6f447ed4d57b",
+   "tasks": {
+    "calc": 0.7484999999999999,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 0.75,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 2,
+   "level": 3,
+   "fit": 0.7984,
+   "genome": "c2ce6f447ed4d57b",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.0
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 0.0
+   }
+  },
+  {
+   "gen": 3,
+   "level": 3,
+   "fit": 0.7484999999999999,
+   "genome": "c2ce6f447ed4d57b",
+   "tasks": {
+    "calc": 0.7484999999999999,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.0
+   },
+   "success": {
+    "calc": 0.75,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 0.0
+   }
+  },
+  {
+   "gen": 4,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d5fb",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 5,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 6,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 7,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 8,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 9,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 10,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 11,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 12,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 13,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  },
+  {
+   "gen": 14,
+   "level": 3,
+   "fit": 0.998,
+   "genome": "e2ce6f447ed4d3ff",
+   "tasks": {
+    "calc": 0.998,
+    "mem": 0.998,
+    "cmp": 0.998,
+    "cmp_hard": 0.998,
+    "cipher": 0.998
+   },
+   "success": {
+    "calc": 1.0,
+    "mem": 1.0,
+    "cmp": 1.0,
+    "cmp_hard": 1.0,
+    "cipher": 1.0
+   }
+  }
+ ]
+}
