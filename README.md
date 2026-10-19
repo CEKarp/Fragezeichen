@@ -152,3 +152,29 @@ epistatischen Landschaften.
 Was fehlt: groessere Populationen (POP=200+), mehr Knoten (30+),
 neutrale Mutation als primaerer Operator, Inselmodelle. Das sind
 Standard-CGP-Techniken, die hier nicht implementiert sind.
+
+### Nachtrag: Die Diversitaets-Hypothese ist widerlegt
+
+Die naheliegende Erklaerung fuer das schlechte Curriculum-Abschneiden
+war Diversitaetsverlust. Der Fix: nach jeder Stufe einen Teil der
+Population durch frische Genome ersetzen. Getestet mit 30% / 50% / 70%
+Reset am Stufenuebergang, 5 Seeds, 30k Evals:
+
+| Strategie | Median | Max |
+|-----------|--------|-----|
+| GA direkt | **0.8255** | **0.8393** |
+| Curriculum (kein Reset) | 0.7034 | 0.7500 |
+| Curr + Stagnation-Restart | 0.7619 | 0.8209 |
+| Curr + Div-Reset 30% | 0.7272 | 0.7822 |
+| Curr + Div-Reset 50% | 0.7034 | 0.8125 |
+| Curr + Div-Reset 70% | 0.6880 | 0.7034 |
+
+**Kein Reset-Level rettet das Curriculum.** Das Problem ist tiefer:
+die Population konvergiert auf jeder Stufe auf eine Struktur, die
+fuer die naechste Stufe fundamental falsch ist. Mehr Zufall am
+Uebergang hilft nicht, weil die Elite schon zu weit in die falsche
+Richtung gelaufen ist.
+
+GA direkt bleibt die beste Strategie. Das Curriculum ist damit
+endgueltig als schaedlich belegt, nicht nur als "schlecht
+implementiert".
