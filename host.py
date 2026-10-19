@@ -5,13 +5,15 @@ from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge
 
 T_RDY, T_OUT = 64, 256
-OP_CALC, OP_FACT, OP_ASK_VAL, OP_REL, OP_ASK_CMP, OP_CIPHER, OP_ASK_KEY = 1,2,3,4,5,6,7
+OP_CALC, OP_FACT, OP_ASK_VAL, OP_REL, OP_ASK_CMP, OP_CIPHER, OP_ASK_KEY, OP_GT = 1,2,3,4,5,6,7,8
 
-POP      = int(os.environ.get("POP", 12))
-GENS     = int(os.environ.get("GENS", 30))
-EPS      = int(os.environ.get("EPS", 6))
-SEED     = int(os.environ.get("SEED", 1))
-FEEDBACK = int(os.environ.get("FEEDBACK", 0))
+POP         = int(os.environ.get("POP", 12))
+GENS        = int(os.environ.get("GENS", 30))
+EPS         = int(os.environ.get("EPS", 6))
+SEED        = int(os.environ.get("SEED", 1))
+FEEDBACK    = int(os.environ.get("FEEDBACK", 0))
+GENOME_BITS = int(os.environ.get("GENOME_BITS", 64))
+TASKS       = os.environ.get("TASKS", "calc,mem,cmp,cmp_hard,cipher").split(",")
 
 
 def rd(sig):
@@ -129,43 +131,63 @@ async def ep_cipher(bus, rng, level):
     if not await bus.tell([OP_CIPHER] + c): return 0.0
     return await bus.ask([OP_ASK_KEY, p_len], key)
 
+async def ep_gt(bus, i):
+    """Deterministisch: alle 64 (A,B)-Paare, einmal pro Genom."""
+    a, b = divmod(i, 8)
+    return await bus.ask([OP_GT, a, b], [int(a > b)])
+
 
 async def evaluate(bus, genome, gen, level):
-    tasks = {
+    all_tasks = {
         "calc":     lambda r: ep_calc(bus, r),
         "mem":      lambda r: ep_mem(bus, r),
         "cmp":      lambda r: ep_cmp(bus, r),
         "cmp_hard": lambda r: ep_cmp_hard(bus, r),
         "cipher":   lambda r: ep_cipher(bus, r, level),
+        "gt":       None,
     }
+    tasks = {k: v for k, v in all_tasks.items() if k in TASKS}
     res, ok = {}, {}
     for name, fn in tasks.items():
+        n = 64 if name == "gt" else EPS
         scores = []
-        for i in range(EPS):
+        for i in range(n):
             rng = random.Random(f"{SEED}-{gen}-{name}-{i}")
             await bus.reset(genome)
-            scores.append(await fn(rng))
-        res[name] = sum(scores) / EPS
-        ok[name]  = sum(s > 0 for s in scores) / EPS
+            scores.append(await (ep_gt(bus, i) if name == "gt" else fn(rng)))
+        res[name] = sum(scores) / n
+        ok[name]  = sum(s > 0 for s in scores) / n
     return sum(res.values()) / len(res), res, ok
 
 
 def mutate(g, rng):
     for _ in range(rng.randint(1, 3)):
-        g ^= 1 << rng.randrange(64)
+        g ^= 1 << rng.randrange(GENOME_BITS)
     return g
+
+
+VERIFY_GENOME = os.environ.get("VERIFY_GENOME")
 
 
 @cocotb.test()
 async def evolution(dut):
     bus = Bus(dut); bus.idle()
+    if VERIFY_GENOME:
+        dut.GENOME.value = 0
+        dut.RST_N.value = 0
+        cocotb.start_soon(Clock(dut.CLK, 10, "ns").start())
+        await bus.tick()
+        g = int(VERIFY_GENOME, 16)
+        fit, res, ok = await evaluate(bus, g, 0, 1)
+        dut._log.info(f"VERIFY genome={VERIFY_GENOME} fit={fit:.4f} tasks={res}")
+        return
     dut.RST_N.value = 0
     dut.GENOME.value = 1
     cocotb.start_soon(Clock(dut.CLK, 10, "ns").start())
     await bus.tick()
 
     rng = random.Random(SEED)
-    pop = [rng.getrandbits(64) for _ in range(POP)]
+    pop = [rng.getrandbits(GENOME_BITS) for _ in range(POP)]
     level, history, best_ever = 1, [], (-1.0, 0)
 
     for gen in range(GENS):
@@ -178,17 +200,19 @@ async def evolution(dut):
         if fit > best_ever[0]:
             best_ever = (fit, g)
         dut._log.info(
-            f"Gen {gen:3d} | L{level} | best {fit:.4f} | genom {g:016x} | "
+            f"Gen {gen:3d} | L{level} | best {fit:.4f} | genom {g:0{GENOME_BITS//4}x} | "
             + " ".join(f"{k}={v:.2f}" for k, v in res.items()))
         history.append({"gen": gen, "level": level, "fit": fit,
-                        "genome": f"{g:016x}", "tasks": res, "success": ok})
-        if ok["cipher"] >= 0.95 and level < 3:
+                        "genome": f"{g:0{GENOME_BITS//4}x}", "tasks": res, "success": ok})
+        if "cipher" in ok and ok["cipher"] >= 0.95 and level < 3:
             level += 1
         elites = [t[1] for t in scored[:max(2, POP // 4)]]
         pop = elites + [mutate(rng.choice(elites), rng) for _ in range(POP - len(elites))]
 
     with open("results.json", "w") as f:
         json.dump({"best_fitness": best_ever[0],
-                   "best_genome": f"{best_ever[1]:016x}",
+                   "best_genome": f"{best_ever[1]:0{GENOME_BITS//4}x}",
+                   "genome_bits": GENOME_BITS,
+                   "tasks": TASKS,
                    "history": history}, f, indent=1)
-    dut._log.info(f"Fertig. Bestes Genom {best_ever[1]:016x}, Fitness {best_ever[0]:.4f}")
+    dut._log.info(f"Fertig. Bestes Genom {best_ever[1]:0{GENOME_BITS//4}x}, Fitness {best_ever[0]:.4f}")
