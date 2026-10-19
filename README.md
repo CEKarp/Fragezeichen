@@ -1018,3 +1018,95 @@ sondern aus Selektion. Das ist ein kleiner Beitrag zu einer grossen
 Frage — und der decodierte Addierer ist der einzige Beweis, den
 dieses Repo fuer diese Frage hat.
 
+## Ausblick: Von Schaltungen zu einer evolvierten Sprache
+
+Dieser Abschnitt stammt aus einer externen Review ("Luna") und ist **nicht**
+Teil dieses Projekts. Er ordnet ein, was hier fehlt, und schlaegt einen
+konkreten naechsten Schritt vor.
+
+### Die zentrale Unterscheidung
+
+Ein GA, der Schaltungen aus **festen Gattern** zusammensetzt, entwickelt
+noch keine Programmiersprache. Er findet Programme *in* einer vorgegebenen
+Sprache. Dieses Projekt ist an dieser Stelle stehengeblieben: die Operatoren
+(AND/OR/XOR/NAND), die Repraesentation (CGP-Graph), die Fitness-Funktion —
+alles vom Menschen vorgegeben. Der GA passt Parameter an, nicht die Sprache.
+
+Das ist kein Mangel, sondern die bewusste Grenze dieses Experiments. Aber
+es macht den naechsten Schritt sichtbar.
+
+### Drei Stufen (auseinanderzuhalten)
+
+1. **Programme evolutionieren** (Stand dieses Projekts): CGP mit fester
+   Basis-Sprache. Loest add3 zu 97%, add4 zu 43%. Abgeschlossen.
+
+2. **Wiederverwendbare Module entdecken**: Haeufige aktive Teilgraphen aus
+   geloesten Genomen extrahieren und als benannte Bausteine verfuegbar
+   machen. Der GA darf sie in neuen Laeufen verwenden. Frage: findet
+   Evolution nuetzliche Teilstrukturen wieder, oder erfindet sie jedes Mal
+   neu?
+
+3. **Die Sprache selbst evolutionieren**: Der Algorithmus darf nicht nur
+   Bausteine verwenden, sondern die Grammatik veraendern — Produktionsregeln
+   hinzufuegen, entfernen, zusammenfuehren. Das ist ein anderes Framework
+   (Grammatical Evolution, Ryan 1998), nicht mehr CGP.
+
+Ein GA auf Stufe 2 ist noch keine Sprach-Evolution. Erst Stufe 3 verdient
+den Namen. Die Unterscheidung ist wichtig, weil "selbstadaptiv" im
+Projekttitel nur Stufe 1 meint.
+
+### Die kleinste sinnvolle Erweiterung: Modulentdeckung
+
+Bevor man eine Sprache evolutioniert, muss man wissen, ob Evolution
+ueberhaupt wiederverwendbare Teilstrukturen findet.
+
+`tools_duplicates.py` hat gezeigt, dass die 32 geloesten add3-Genome
+strukturell verschieden sind (32/32 unique tt_hash). Aber sind sie
+**funktional redundant**? Berechnen verschiedene Genome dieselben
+Zwischenfunktionen an verschiedenen Positionen? Wenn ja, gibt es eine
+natuerliche Modulbibliothek, die der GA wiederentdeckt. Wenn nein, ist
+jede Loesung idiosynkratisch — dann gibt es nichts zu modularisieren.
+
+Das ist eine Frage an die **vorhandenen** Daten, kein neues Experiment.
+Ein Vergleich der Knoten-Wahrheitstabellen ueber alle 32 Genome wuerde
+sie beantworten.
+
+### Der 24-Stunden-Prototyp
+
+Nimm die vorhandenen add3-Loesungen, extrahiere aus den aktiven Graphen
+kleine Teilgraphen mit passenden Ein-/Ausgangsschnittstellen. Erzeuge
+daraus eine Kandidatenbibliothek. Vergleiche dann:
+
+- **A:** CGP mit den urspruenglichen Grundgattern (Baseline, bekannt)
+- **B:** CGP mit Grundgattern + extrahierten Modulen (neue Bedingung)
+
+Teste beide mit denselben Seeds und demselben Evaluationsbudget auf add3
+und **einer vorher zurueckgehaltenen Aufgabe** (z.B. add4). Miss
+Korrektheit, aktive Gatter, Tiefe und wie oft jedes Modul verwendet wird.
+
+Wichtig: Module duerfen nicht anhand der zurueckgehaltenen Testaufgabe
+ausgewaehlt werden. Sonst misst man Overfitting auf die Zielaufgabe.
+
+Ein positiver Befund waere nicht bloss "B loest mehr", sondern:
+**B findet bei vergleichbarer Korrektheit kompaktere Loesungen, und die
+Module helfen auf einer nicht zur Entdeckung verwendeten Aufgabe.**
+
+### Drei Messdimensionen jenseits der Korrektheit
+
+1. **Korrektheit** (haben wir: train, test, gap)
+2. **Einfachheit** (haben wir teilweise: aktive Knoten, Tiefe)
+3. **Uebertragbarkeit** (haben wir nicht: hilft ein Modul auf einer neuen
+   Aufgabe oder Bitbreite?)
+
+Punkt 3 ist der entscheidende. Ohne ihn misst man nur, ob ein Modul die
+Trainingsdaten komprimiert — nicht, ob es echte Wiederverwendung ist.
+
+### Was dieses Projekt nicht ist
+
+Kein Sprach-Evolutions-Experiment. Kein Modul-CGP. Kein Grammatical
+Evolution. Ein abgeschlossenes CGP-Experiment mit klaren Grenzen und einem
+decodierten Addierer, der zeigt, dass blinde Suche Struktur finden kann.
+
+Der naechste Schritt — Modulentdeckung — ist eine bewusste Entscheidung
+fuer neue Arbeit. Er ist hier beschrieben, aber nicht gemacht.
+
