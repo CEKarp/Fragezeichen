@@ -1,4 +1,5 @@
 """tools_tasks.py — echte Aufgaben-Definitionen auf 64-Bit-Wahrheitstabellen."""
+import os
 from tools_cgp_curriculum import eval_genome, M
 
 def _tt(fn):
@@ -14,6 +15,9 @@ T_ADD2 = [_tt(lambda a, b, bb=bb: ((a + b) >> bb) & 1) for bb in range(2)]
 T_ADD3 = [_tt(lambda a, b, bb=bb: ((a + b) >> bb) & 1) for bb in range(3)]
 T_ADD4 = [_tt(lambda a, b, bb=bb: ((a + b) >> bb) & 1) for bb in range(4)]
 
+def _metric_mode():
+    return os.environ.get("METRIC_MODE", "mean")
+
 def _balanced(pred, target):
     tp = (pred & target & M).bit_count()
     tn = ((~pred) & (~target) & M).bit_count()
@@ -21,6 +25,8 @@ def _balanced(pred, target):
     fn = ((~pred) & target & M).bit_count()
     a0 = tn / (tn + fp) if (tn + fp) else 0.0
     a1 = tp / (tp + fn) if (tp + fn) else 0.0
+    if _metric_mode() == 'min':
+        return min(a0, a1)
     return (a0 + a1) / 2
 
 def fitness_for_task(g, task):
@@ -68,6 +74,8 @@ def _balanced_masked(pred, target, mask):
     fn = ((~p) & t).bit_count()
     a0 = tn / (tn + fp) if (tn + fp) else 0.0
     a1 = tp / (tp + fn) if (tp + fn) else 0.0
+    if _metric_mode() == 'min':
+        return min(a0, a1)
     return (a0 + a1) / 2
 
 def fitness_for_task_masked(g, task, mask):
