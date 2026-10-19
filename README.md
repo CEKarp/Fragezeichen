@@ -571,3 +571,71 @@ Das ist unangenehm. Aber es ist genau der Punkt, an dem ehrliche
 Forschung weh tut: ein externer Review findet einen Fehler, der die
 Interpretation mehrerer Ergebnisse aendert. Das gehoert ins README,
 nicht unter den Teppich.
+
+## Der Durchbruch: Selbstjustierende Suche mit ausreichendem Budget
+
+Die Revision zeigte: zwei Kodierungsfehler limitierten den CGP-GA.
+
+1. **Selektorbreite.** 4-Bit-Selektoren adressieren nur 16 Quellen
+   (6 Eingaenge + Knoten 0-9). Bei 30 Knoten waren 20 der 30 Knoten
+   nicht adressierbar.
+2. **Suchparameter.** Single-Active-Mutation, 1/5-Erfolgsregel und
+   neutrale Drift waren nicht eingebaut.
+
+Mit `tools_selfadapt.py` (breite Selektoren, freie Output-Gene,
+selbstjustierende Mutation) und `tools_parallel.py` (8 Kerne) sind
+beide behoben. Die Ergebnisse, 30 Knoten, 48/16-Train/Test-Split,
+32 Seeds:
+
+| Task | Budget | geloest (Test) | Rate |
+|------|--------|----------------|------|
+| add3 | 300k | 31/32 | **97%** |
+| add4 | 300k | 5/32 | 15.6% |
+| add4 | 1Mio | 12/32 | 37.5% |
+| add4 | 3Mio | 14/32 | 43.75% |
+
+### Was das zeigt
+
+**Der 3-Bit-Addierer ist geloest.** 31 von 32 Seeds finden eine
+Schaltung, die auf allen 16 ungesehenen Paaren korrekt addiert.
+`train=1.0, test=1.0`. Bei 300k Evals, in 100 Sekunden auf 8 Kernen.
+
+**Der 4-Bit-Addierer ist machbar, aber nicht zuverlaessig.** Die
+Erfolgsrate steigt von 15.6% (300k) auf 37.5% (1Mio) und saettigt
+bei ~44% (3Mio). Das ist eine Sattigungskurve: 3x mehr Budget
+bringt +6 Prozentpunkte.
+
+**Die frueheren Aussagen sind korrigiert:**
+- "Kletter-Klippe bei add3" war ein Artefakt der toten Knoten.
+  add3 ist geloest, nicht gescheitert.
+- "Kapazitaet hilft aufgabenspezifisch" war richtig, aber
+  unvollstaendig. Kapazitaet (30 statt 18 Knoten) *und* breite
+  Selektoren *und* bessere Suche muessen zusammenkommen.
+- "Parsimonie ist der Schluessel" war zu optimistisch. add3 loest
+  ohne Parsimonie, allein durch die Suche und die Selektorbreite.
+
+### Was offen bleibt
+
+**add4 saettigt bei ~44%.** 48 Trainingspaare sind fuer zuverlaessige
+4-Bit-Addition knapp. Der naechste Schritt waere 4+4 Bit (256 Paare,
+192/64-Split) — mehr Daten, aber auch eine schwerere Aufgabe
+(8 Ausgangsbits statt 4).
+
+**Was mehr Budget nicht mehr loest.** 3Mio bringt gegenueber 1Mio
+nur +6 Prozentpunkte. Die Grenze fuer add4 bei diesem Setup ist die
+Datengroesse, nicht die Rechenzeit.
+
+### Die Lehre des Projekts
+
+Das negative Ergebnis "der GA scheitert an der Kletter-Klippe" war
+kein fundamentales Limit. Es war die Kombination aus zwei
+Implementierungsfehlern und zu wenig Budget. Mit allem drei behoben:
+add3 97%, add4 44%.
+
+Das ist die wichtigste Erkenntnis. Nicht "der GA ist zu schwach"
+ist die richtige Antwort auf ein negatives Ergebnis, sondern:
+**"welche Implementierungsdetails limitieren ihn?"**
+
+Ein negativer Befund ist oft ein Debugging-Problem, keine Grenze
+der Methode.
+
