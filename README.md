@@ -792,6 +792,58 @@ ihn, sondern 32 unabhaengige Loesungen.
 - **Nicht auf add4 uebertragbar.** add4 hat 44% Erfolgsrate — ob die
   geloesten add4-Genome auch vielfaeltig sind, ist nicht gemessen.
 
+## Fehleranalyse: der GA scheitert an langen Carry-Ketten
+
+Die 21 nicht-geloesten add4-Seeds (bei 1Mio Evals, 32 Seeds) wurden
+Paar fuer Paar analysiert. An welchen Test-Paaren scheitern sie?
+
+| Paar | Binaer | Falsch |
+|------|--------|--------|
+| 1+7 | 001+111 | **16/21** |
+| 5+3 | 101+011 | **15/21** |
+| 5+7 | 101+111 | 13/21 |
+| 7+5 | 111+101 | 8/21 |
+| 7+7 | 111+111 | 8/21 |
+| 3+3 | 011+011 | 4/21 |
+
+Erwartung bei Zufall (uniform ueber 16 Test-Paare): 4.00 Fehler pro
+Paar. Tatsaechliches Maximum: **16**. Das ist **4x ueber Zufall** —
+kein Rauschen, sondern ein struktureller Befund.
+
+### Was die Top-5-Paare gemeinsam haben
+
+Alle fuenf haben `s3 = 1` (das hoechste Summenbit) und erfordern
+**Carry-Ketten ueber 2-3 Bit**:
+
+    1+7 = 001+111 = 1000  (c1=1, c2=1, c3=1)
+    7+7 = 111+111 = 1110  (c1=1, c2=1, c3=1)
+
+Die meisten nicht-geloesten Seeds bauen einen Addierer, der fuer
+kurze Carry-Ketten funktioniert (1-Bit-Carry, z.B. 1+1, 2+3) und
+bei langen Ketten zusammenbricht.
+
+### Was das bedeutet
+
+Das ist die klassische **Shallow-Circuit-Falle** in CGP: Der GA baut
+was schnell funktioniert — und das sind Addierer, die 80-90% der
+Faelle loesen. Die letzten 10-20% (lange Carry-Ketten) sind ein
+lokales Optimum.
+
+Die Fitness-Landschaft ist schuld: Ein Addierer mit 1-Bit-Carry macht
+15/16 Paare richtig. Ein vollstaendiger Addierer 16/16. Der
+Unterschied ist **1 Paar**. Der Gradient ist fast flach, die
+Selektion kann diesen Unterschied kaum nutzen.
+
+### Warum add3 loest und add4 nicht
+
+Bei 3 Bit gibt es weniger lange Carry-Ketten. Das Maximum ist 2 Bit
+(7+7). Bei 4 Bit sind es 3-4 Bit (7+7 braucht 3 Stufen). Die Kette
+wird laenger, die Falle tiefer, die Fitness-Landschaft flacher.
+
+Das erklaert die Saettigung bei ~44%: Nicht die Kapazitaet (30 Knoten
+reichen fuer einen 4-Bit-Addierer) ist die Grenze, sondern die
+Tiefe der Carry-Kette, die der GA nicht findet.
+
 ## Crib-Test: Vorwissen ist kein Vorteil bei Addierern
 
 Die Urspungsidee des Projekts war die Enigma-Metapher: Die Frauen in
