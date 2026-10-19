@@ -285,3 +285,40 @@ Die Kletter-Klippe verschiebt sich mit mehr Kapazitaet, verschwindet
 aber nicht. Das ist konsistent mit der gt3-Beobachtung: der GA kommt
 nah heran (61/64, 59/64), aber der letzte Sprung braucht mehr als
 mehr Platz.
+
+## Overfitting-Test: Findet der GA Schaltungen oder Lookup-Tabellen?
+
+Alle bisherigen Matrizen massen auf denselben 64 Paaren, auf denen der
+GA optimierte. Ein GA mit 180-300 Bit Genom und nur 64 Trainingsfaellen
+koennte statt einer Schaltung eine Lookup-Tabelle bauen. Das waere
+Overfitting, kein Lernen.
+
+Test: 48 Paare trainieren, 16 ungesehene testen. Gap = Train - Test.
+
+| Task | Seeds mit Gap < 0.05 | Seeds mit Gap > 0.1 |
+|------|----------------------|---------------------|
+| gt3  | 0/5                  | 3/5                 |
+| add2 | 3/5 (davon 1 mit 1.0/1.0) | 2/5             |
+| add3 | 2/5                  | 2/5                 |
+| add4 | 2/5                  | 2/5                 |
+
+### Was das zeigt
+
+1. **Manche Seeds finden echte Schaltungen.** add2 Seed 5 erreicht
+   Train=1.0, Test=1.0 - die Loesung funktioniert auf ungesehenen
+   Paaren. Das ist echte Addition, kein Lookup.
+
+2. **Manche Seeds memorieren.** add2 Seed 3 erreicht Train=0.93,
+   Test=0.72, Gap=+0.21. Der GA hat 48 Paare auswendig gelernt und
+   scheitert auf den 16 neuen.
+
+3. **Die absoluten Zahlen beider Matrizen sind zu optimistisch.**
+   Sie mischen echte Schaltungen und Lookup-Tabellen. Die Deltas
+   (GA vs. Zufall) bleiben gueltig, die Absolutwerte nicht.
+
+Was haelt: mini_alu/blind_seed (kein CGP), Hamming-vs-balanced
+(kein Datenleck), Curriculum-schadet (Vergleich zwischen Strategien),
+GA>Zufall (Delta bleibt).
+
+Was wackelt: die absoluten Fitnesswerte der Matrizen, die Aussage
+"add3/add4 kommen naeher an 1.0" (teilweise Overfitting).
