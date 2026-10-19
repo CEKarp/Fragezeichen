@@ -109,3 +109,46 @@ andere Schaltung. Das ist premature convergence auf einem lokalen Optimum.
 
 Die CGP-Ideen stammen von Miller, Thompson und Kollegen. Der Code ist
 frei verwendbar.
+
+## Strategievergleich: GA vs. Zufall vs. Curriculum
+
+Gleiche Aufgabe (4-Bit-Addierer, 18 Knoten), gleiches Budget.
+Zwei Budgets, um zu pruefen, ob Rechenzeit die Grenze ist.
+
+| Stufe | 30k Evals | 100k Evals |
+|-------|-----------|------------|
+| Reine Zufallssuche | 0.6964 | 0.7232 |
+| GA direkt (kein Curriculum) | 0.8177 | **0.8333** |
+| GA + Curriculum (1-2-3-4 Bit) | 0.7034 | 0.7113 |
+| GA + Curriculum + Random Restart | 0.7619 | 0.8135 |
+
+Median ueber 3 bzw. 5 Seeds. 0/5 loesen den Addierer.
+
+### Befunde
+
+1. **Der GA ist besser als Zufall.** +0.11 bei beiden Budgets.
+   Der erste saubere Beleg, dass Evolution hier etwas bringt.
+2. **Das Curriculum schadet.** 0.71 mit vs 0.83 ohne.
+   Die Population konvergiert auf jeder Stufe und kann die
+   naechste nicht mehr lernen - Diversitaetsverlust.
+3. **Random Restart repariert das fast.** 0.71 -> 0.81.
+   Frischer Zufall bei Stagnation holt die Population raus.
+4. **3,3x mehr Budget bringt fast nichts.** +0.01 bis +0.05.
+   Die Landschaft ist bei 100k Evals gesaettigt.
+5. **Niemand loest den Addierer.** Trotz Handgenom-Beweis
+   (fit=1.0). Der GA findet die Loesung nicht.
+
+### Was dieser Vergleich zeigt
+
+Das Curriculum war eine intuitive, aber falsche Idee: "vom Einfachen
+zum Schweren" zerstoert die Populationsdiversitaet. Der GA direkt
+ist die bessere Strategie. Random Restart ist ein billiger Fix.
+
+Die Grenze liegt nicht am Budget (100k Evals = +0.02 bis +0.05),
+nicht an der Kapazitaet (Handgenom loest den 4-Bit-Addierer mit
+18 Knoten), sondern an der Suchstrategie des einfachen GA auf
+epistatischen Landschaften.
+
+Was fehlt: groessere Populationen (POP=200+), mehr Knoten (30+),
+neutrale Mutation als primaerer Operator, Inselmodelle. Das sind
+Standard-CGP-Techniken, die hier nicht implementiert sind.
