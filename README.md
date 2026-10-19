@@ -330,6 +330,15 @@ GA>Zufall (Delta bleibt).
 Was wackelt: die absoluten Fitnesswerte der Matrizen, die Aussage
 "add3/add4 kommen naeher an 1.0" (teilweise Overfitting).
 
+> **Hinweis (Revision):** Die Zahlen in diesem Abschnitt wurden mit
+> einer defekten Selektor-Kodierung erzeugt (4-Bit-Selektoren, nur 16
+> Quellen adressierbar). Bei 30 Knoten waren 20 davon toter Ballast.
+> Die qualitativen Aussagen ("Kapazitaet hilft aufgabenspezifisch")
+> bleiben als Beobachtung gueltig, aber die absoluten Zahlen
+> unterschaetzen, was mit reparierter Kodierung moeglich ist. Siehe
+> Abschnitt "Revision: Selbstjustierende Suche" am Ende dieses README
+> fuer die korrigierten Werte.
+
 ## Kapazitaet vs. Overfitting: 18 vs. 30 Knoten (ehrlich)
 
 Gleiche Matrix, gleiches Budget (50k Evals, POP=30, 5 Seeds), aber
@@ -481,3 +490,84 @@ von der Regularisierung.
 Die ehrliche Antwort: manchmal generalisiert der GA, mit der richtigen
 Regularisierung, auf einfachen Aufgaben. Nicht zuverlaessig, und nicht
 auf komplexen Aufgaben mit wenig Trainingsdaten.
+
+## Revision: Selbstjustierende Suche
+
+Externer Review (Claude) hat zwei Kodierungsfehler im CGP-Modell
+gefunden, die mehrere Kapitel dieses README relativieren:
+
+**Fehler 1: Selektorbreite.** Die 4-Bit-Selektoren adressieren nur
+16 Quellen (6 Eingaenge + Knoten 0-9). Bei N > 16 Knoten koennen
+Knoten ab Index 10 von niemandem gelesen werden. Die 30-Knoten-Matrix
+hat also effektiv mit 10 Knoten gearbeitet.
+
+**Fehler 2: Suchparameter.** Single-Active-Mutation, 1/5-Erfolgsregel
+und neutrale Drift waren nicht eingebaut. Der GA hat nur mit
+Punktmutation und fester Rate gesucht.
+
+`tools_selfadapt.py` behebt beides. Selbstjustierend: Mutationsstaerke,
+Restart, Parsimonie als Tie-Break, alles ohne handgetunte Parameter.
+
+### Ergebnisse (50k Evals, 10 Seeds, Test-Split)
+
+| Task | Knoten | Variante | Test | Gap | Geloest |
+|------|--------|----------|------|-----|---------|
+| add3 | 18 | alt | 0.7771 | +0.099 | 0/10 |
+| add3 | 18 | neu16 (Suche neu, Selektoren alt) | 0.9153 | +0.057 | 0/10 |
+| add3 | 18 | neu (Suche neu, Selektoren breit) | 0.9206 | +0.052 | 1/10 |
+| add3 | 30 | alt | 0.7563 | +0.124 | 0/10 |
+| add3 | 30 | neu16 | 0.9153 | +0.057 | 0/10 |
+| add3 | 30 | **neu** | **0.9339** | +0.059 | **4/10** |
+| add4 | 18 | alt | 0.7442 | +0.137 | 0/10 |
+| add4 | 18 | neu | 0.8629 | +0.077 | 0/10 |
+| add4 | 30 | alt | 0.7502 | +0.130 | 0/10 |
+| add4 | 30 | **neu** | **0.8782** | +0.075 | 0/10 |
+
+### Was die Revision zeigt
+
+**1. Die Suche ist der Haupttreiber, nicht die Kapazitaet.**
+`alt -> neu16` bringt +0.14 bis +0.16 auf allen Zeilen. Single-Active-
+Mutation + 1/5-Regel + neutrale Drift waren der eigentliche Flaschenhals.
+
+**2. Selektorbreite wirkt erst bei 30 Knoten richtig.**
+Bei 18 Knoten: `neu16 -> neu` bringt +0.006, 0 -> 1 geloest.
+Bei 30 Knoten: +0.019, 0 -> 4 geloest.
+Mechanisch: bei 16-Quellen-Selektoren sind nur 10 von N Knoten
+erreichbar. Bei N=18 sind 8 Knoten tot (44% Verlust), bei N=30 sind
+20 Knoten tot (67% Verlust). Der Fehler skaliert mit der Knotenzahl.
+
+**3. `neu16` bei 18 und 30 Knoten ist identisch** (0.9153, 0/10).
+Bestaetigung: mit der 16-Quellen-Beschraenkung arbeiten beide effektiv
+mit 10 Knoten.
+
+### Was das fuer fruehere Kapitel bedeutet
+
+**"18 vs 30 Knoten" (Kapazitaet vs Overfitting):** Die Aussage
+"Kapazitaet hilft aufgabenspezifisch" war mit dem Kodierungsfehler
+belastet. 20 von 30 Knoten waren tot. Ehrlich korrigiert: Kapazitaet
+hilft, aber erst nachdem die Suche repariert wurde. Mit breiten
+Selektoren und neuer Suche loest add3 in 4/10 Seeds bei 30 Knoten.
+
+**"Kletter-Klippe":** Sie war teilweise ein Artefakt der 16-Quellen-
+Kodierung. Bei add3 Max 0.958, 0/10 geloest war kein fundamentales
+Limit, sondern die Kombination aus schwacher Suche und toten Knoten.
+Mit korrigierter Kodierung loest add3 in 40% der Seeds.
+
+**Was haelt:**
+- add4 bleibt ungeloest (48 Paare zu wenig Information, echte
+  Datengrenze, unabhaengig von Suche und Kapazitaet)
+- Overfitting-Befund (Gap +0.05 bis +0.13 je nach Variante, je nach Task)
+- gt3, ne3, mini_alu/blind_seed sind unberuehrt
+
+### Was diese Revision kostet
+
+Zwei Kapitel dieses README ("18 vs 30 Knoten" und die Kletter-Klippe)
+sind in ihrer urspruenglichen Form nicht mehr haltbar. Sie bleiben im
+Dokument als Dokumentation dessen, was gedacht war, aber der Leser
+muss wissen: die Zahlen dort sind mit defekter Kodierung erzeugt.
+Dieser Abschnitt ist die Korrektur.
+
+Das ist unangenehm. Aber es ist genau der Punkt, an dem ehrliche
+Forschung weh tut: ein externer Review findet einen Fehler, der die
+Interpretation mehrerer Ergebnisse aendert. Das gehoert ins README,
+nicht unter den Teppich.
