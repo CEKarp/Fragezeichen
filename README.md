@@ -1,4 +1,4 @@
-# Enigma-Revisited
+# Fragezeichen
 
 Ein cocotb-Harness, das einen genetischen Algorithmus gegen drei verschiedene
 Verilog-DUTs laufen lässt — mit einer positiven Kontrolle, einer negativen

@@ -77,7 +77,7 @@ def main():
         draw_panel(ax, data, title, color_main=col)
 
     fig.suptitle(
-        "Enigma-Damen GA — mini_alu (links, Gradient vorhanden) "
+        "Fragezeichen — mini_alu (links, Gradient vorhanden) "
         "vs. blind_seed (rechts, kein Gradient)",
         fontsize=12, y=0.99)
 
