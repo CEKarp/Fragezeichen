@@ -732,6 +732,66 @@ derselbe Lauf mit 3 Splits x 32 Seeds wiederholt:
    Die Differenz ist gross genug, um sie zu dokumentieren, aber nicht
    gross genug, um die Aussage "add4 sattigt bei ~44%" zu kippen.
 
+## Strukturelle Vielfalt: der GA konvergiert nicht
+
+Die add3-Erfolgsrate ist 31/32 (97%). Aber sind die 31 geloesten Genome
+wirklich 31 verschiedene Loesungen — oder 31 mal dieselbe Schaltung in
+anderer Kodierung? `tools_duplicates.py` decodiert alle geloesten
+Genome, berechnet die Wahrheitstabellen ihrer aktiven Knoten und
+gruppiert nach strukturellem Fingerabdruck (tt_hash).
+
+Lauf: 32 Seeds, add3, 300k Evals, 30 Knoten:
+
+    Geloest: 32/32
+    Einzigartige Strukturen (tt_hash): 32
+
+**Alle 32 Genome sind strukturell verschieden.** Keine zwei Loesungen
+berechnen dieselben Zwischenfunktionen. Der GA findet 32 unabhaengige
+Wege zum 3-Bit-Addierer.
+
+### Die Verteilungen
+
+Knoten-Anzahl (Median 10-11, Spanne 9-15):
+
+| Knoten | Genome |
+|--------|--------|
+| 9 | 5 |
+| 10 | 10 |
+| 11 | 8 |
+| 12 | 5 |
+| 13 | 3 |
+| 15 | 1 |
+
+Tiefe (Median 4, Spanne 2-6): eine Loesung hat Tiefe 2 (nur das
+niedrige Summenbit s0 = A0^B0 als einzelnes Gatter), die meisten
+liegen bei 3-5 (Carry-Ketten).
+
+Operator-Verteilung: XOR dominiert (5-8 pro Genom), AND (1-4),
+OR (0-2), NAND (0-2). Das ist die Signatur eines echten Addierers —
+XOR fuer Summen, AND/OR fuer Carries. Der GA hat die Verteilung
+nicht gelernt, sie faellt aus der Aufgabe heraus.
+
+### Was das fuer die "Vielfalt"-Frage bedeutet
+
+Ein haeufig geaeusserter Einwand gegen CGP ist, dass die Population
+auf einen Attraktor konvergiert — alle Laeufe finden dieselbe
+Schaltung, nur unterschiedlich kodiert. Bei add3 ist das **nicht**
+der Fall: 32/32 strukturell verschieden.
+
+Das ist ein staerkerer Befund als die 97%-Erfolgsrate allein. Er
+zeigt: der GA findet nicht einen gluecklichen Fund und wiederholt
+ihn, sondern 32 unabhaengige Loesungen.
+
+### Was der Befund nicht zeigt
+
+- **Nicht funktional verschieden.** Alle 32 berechnen dieselbe Funktion
+  (3-Bit-Addition). Das ist per Definition von "geloest".
+- **Nicht qualitativ besser als der Handgenom-Addierer.** Die Loesungen
+  sind kompakt (10-11 Knoten), aber nicht unbedingt verstaendlicher.
+  Die 32 Strukturen sind alle korrekt, aber nur wenige sind lesbar.
+- **Nicht auf add4 uebertragbar.** add4 hat 44% Erfolgsrate — ob die
+  geloesten add4-Genome auch vielfaeltig sind, ist nicht gemessen.
+
 ## Crib-Test: Vorwissen ist kein Vorteil bei Addierern
 
 Die Urspungsidee des Projekts war die Enigma-Metapher: Die Frauen in
