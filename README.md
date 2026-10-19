@@ -673,6 +673,36 @@ ist die richtige Antwort auf ein negatives Ergebnis, sondern:
 Ein negativer Befund ist oft ein Debugging-Problem, keine Grenze
 der Methode.
 
+### Nachtrag: Konfidenzintervalle
+
+Alle Erfolgsraten oben sind Punktschaetzungen. Bei 32 Seeds sind sie
+mit erheblicher Unsicherheit behaftet. Wilson-Intervalle (95%):
+
+| Fall | k/n | Rate | 95%-KI |
+|------|-----|------|--------|
+| add3 blind, 300k | 31/32 | 96.9% | [84.3%, 99.4%] |
+| add3 Crib 0.1 | 32/32 | 100% | [89.3%, 100%] |
+| add4 blind, 300k | 5/32 | 15.6% | [6.9%, 31.8%] |
+| add4 blind, 1Mio | 12/32 | 37.5% | [22.9%, 54.7%] |
+| add4 blind, 3Mio | 14/32 | 43.8% | [28.2%, 60.7%] |
+
+**Was das ehrlich bedeutet:**
+
+- **add3** ist zuverlaessig geloest: die untere Grenze liegt bei 84%.
+  Die 97% aus dem TL;DR sind die Punktschaetzung, nicht die Wahrheit.
+- **add4** ist unsicherer als die 44% suggerieren. Die Rate koennte
+  zwischen 28% und 60% liegen.
+- **Die Aussage "3x Budget bringt +6pp"** ist statistisch nicht
+  belastbar. Die Intervalle von 1Mio und 3Mio ueberlappen fast
+  vollstaendig ([22.9%, 54.7%] vs. [28.2%, 60.7%]). Die Saettigung
+  ist plausibel, aber nicht bewiesen.
+- **32 Seeds sind knapp.** Fuer belastbare Aussagen ueber add4 waeren
+  100+ Seeds noetig, oder mehrere unabhaengige Train/Test-Splits.
+
+Was die Zahlen nicht aendern: add3 ist geloest, add4 ist machbar
+aber nicht zuverlaessig, und der Unterschied zwischen beiden ist
+gross genug, um nicht Zufall zu sein.
+
 ## Herkunft: Blinde Maschine, Enigma-Frauen, Mathe 2
 
 Dieses Projekt begann nicht mit der Frage "kann ein GA Addierer bauen".
