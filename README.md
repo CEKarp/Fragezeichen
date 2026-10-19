@@ -375,3 +375,54 @@ Trainingsdaten" ist aufgabenspezifisch.
 Das ist die ehrliche Antwort auf die Frage, ob 30 Knoten besser sind
 als 18. Es gibt kein allgemeines "mehr ist besser" - es gibt nur
 "passend zur Aufgabe".
+
+## Metrik-Vergleich: mean vs. min balanced accuracy
+
+Die bisherige Metrik war `(acc0 + acc1) / 2`. Das laesst konstante
+Ausgaben durchrutschen: ein Genom, das immer 1 sagt, hat acc0=0 und
+acc1=1, ergibt im Mittel 0.5. Auf unbalancierten Klassen (ne3: 56:8)
+taeuscht das.
+
+Alternative: `min(acc0, acc1)`. Bestraft die schlechtere Klasse sofort.
+Getestet als `METRIC_MODE=min`, gleiche 18 Knoten, Test-Split.
+
+| Task | Zufall mean | GA mean | Zufall min | GA min | Delta mean | Delta min |
+|------|-------------|---------|------------|--------|------------|-----------|
+| ne3 | 0.6786 | 0.8929 | 0.0000 | 0.0000 | +0.21 | 0.00 |
+| gt2 | 0.8750 | 0.8750 | 0.7500 | 0.7500 | 0.00 | 0.00 |
+| gt3 | 0.7833 | 0.9000 | 0.6667 | 0.7000 | +0.12 | +0.03 |
+| add2 | 0.6875 | 0.7188 | 0.6250 | 0.6250 | +0.03 | 0.00 |
+| add3 | 0.6687 | 0.7146 | 0.5536 | 0.6905 | +0.05 | **+0.14** |
+| add4 | 0.6260 | 0.7855 | 0.5333 | 0.6661 | +0.16 | +0.13 |
+
+### Zwei Enthuellungen
+
+1. **add3 war unter mean unterschaetzt.** GA-Vorteil springt von
+   +0.05 auf +0.14. mean hat add3 heruntergemittelt, weil der Zufall
+   auch hohe Werte erreichte. min zeigt: der GA baut tatsaechlich
+   eine bessere Schaltung als Zufall auf ungesehenen Paaren.
+
+2. **gt3 war unter mean ueberschaetzt.** GA-Vorteil faellt von +0.12
+   auf +0.03. mean hat gt3 hochgemittelt, weil beide Strategien
+   aehnlich hohe Werte hatten. min zeigt: gt3 ist weniger different
+   als gedacht.
+
+### ne3 ist mit diesem Test-Split nicht messbar
+
+`ne3 Zufall: 0.0000 (Median), 0.7857 (Max)`. Das ist kein Fehler,
+sondern ein Test-Split-Artefakt. Bei 56:8-Klassenverteilung enthaelt
+der 16-Paar-Test-Split statistisch ~2 Nullen. min(acc0, acc1) ist
+dann sprunghaft: eine verfehlte Null kollabiert acc0 auf 0.5 oder 0.0.
+Mit so wenigen Test-Paaren pro Klasse ist ne3 grundsaetzlich nicht
+stabil messbar. Die drei Additions-Tasks (8/8 auf Test) sind stabil.
+
+### Fazit: keine Metrik ist "wahr"
+
+mean und min sind zwei Linsen, keine ist die richtige. mean zeigt
+"wie viel insgesamt stimmt", min zeigt "wie gut die schlechtere
+Klasse ist". Beide sind relevant.
+
+Der Kernbefund bleibt unter beiden Metriken: der GA hat echte
+Vorteile auf add3/add4, findet aber keine Loesung, die auf
+ungesehenen Paaren 1.0 erreicht. Die Metrik-Wahl beeinflusst,
+welche Tasks als "geloest" gelten, nicht den grundsaetzlichen Befund.
