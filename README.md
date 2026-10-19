@@ -716,21 +716,33 @@ derselbe Lauf mit 3 Splits x 32 Seeds wiederholt:
 | 44 | 14/32 | 43.8% | [28.2%, 60.7%] | 0.9792 |
 | **pooled** | **41/96** | **42.7%** | **[33.3%, 52.7%]** | — |
 
+**Zur Einordnung der zwei add4-Zahlen:** 37.5% [22.9%, 54.7%] ist
+Split 42 allein (32 Seeds, der Lauf im Abschnitt "Durchbruch"). 42.7%
+[33.3%, 52.7%] ist gepoolt ueber drei Splits (96 Seeds, dieser
+Abschnitt). Kein Widerspruch — unterschiedliche Versuchsreihen.
+
 **Was das zeigt:**
 
-1. **Die Rate ist robust.** Gepoolt 42.7%, im erwarteten Bereich der
-   Einzel-Split-Zahl (37.5%). Das Konfidenzintervall halbiert sich
-   ([33%, 53%] statt [23%, 55%]).
+1. **Die Rate ist grob stabil.** Gepoolt 42.7%, im Bereich der
+   Einzel-Split-Zahl. Die drei Split-Raten liegen zwischen 34.4% und
+   50.0%.
 
-2. **Split-Varianz ist real.** Zwischen 34.4% und 50.0% je nach Split.
-   Das ist kein Zufall, sondern unterschiedlich schwere Test-Sets.
-   Ein einzelner Split gibt kein verlaessliches Bild — die gepoolte
-   Zahl ist die ehrlichere.
+2. **Split-Varianz ist real.** Unterschiedlich schwere Test-Sets.
+   Ein einzelner Split gibt kein verlaessliches Bild.
 
-3. **Die Kernaussage bleibt.** add4 ist bei 1Mio Evals in ~43% der
-   Laeufe loesbar. Split 42 war der schwerste, Split 43 der leichteste.
-   Die Differenz ist gross genug, um sie zu dokumentieren, aber nicht
-   gross genug, um die Aussage "add4 sattigt bei ~44%" zu kippen.
+3. **Die gepoolte Zahl ist ein besserer Punktschaetzer, aber ihr
+   Wilson-Intervall ist zu optimistisch.** Die 96 Laeufe sind nicht
+   96 unabhaengige Beobachtungen: Laeufe desselben Splits teilen sich
+   Trainings- und Testfaelle. Ein Cluster-Bootstrap (Resampling ueber
+   die drei Splits statt ueber die 96 Laeufe) oder ein hierarchisches
+   Modell waere der korrekte Weg, die Unsicherheit ueber Splits
+   zusaetzlich zu erfassen. Das ist nicht gemacht — das gepoolte
+   Intervall [33%, 53%] ist daher als Untergrenze der Unsicherheit
+   zu lesen.
+
+4. **Die Kernaussage bleibt.** add4 ist bei 1Mio Evals grob in
+   35-50% der Laeufe loesbar, je nach Split. Split 42 war der
+   schwerste, Split 43 der leichteste.
 
 ## Strukturelle Vielfalt: der GA konvergiert nicht
 
@@ -746,8 +758,15 @@ Lauf: 32 Seeds, add3, 300k Evals, 30 Knoten:
     Einzigartige Strukturen (tt_hash): 32
 
 **Alle 32 Genome sind strukturell verschieden.** Keine zwei Loesungen
-berechnen dieselben Zwischenfunktionen. Der GA findet 32 unabhaengige
-Wege zum 3-Bit-Addierer.
+berechnen dieselben Zwischenfunktionen. Das ist ein Beleg fuer
+**Genotyp-Diversitaet** unter den gefundenen Loesungen.
+
+Was das **nicht** zeigt: ob die 32 Genome auch unterschiedliche,
+robuste Suchpfade repraesentieren. Sie koennten sich in neutralen
+Teilen unterscheiden (z.B. toten Knoten, die nichts zur Ausgabe
+beitragen), waehrend der aktive Teil der Schaltung identisch ist.
+Die tt_hash-Analyse vergleicht zwar nur aktive Knoten, aber sie
+sagt nichts ueber die Suchdynamik — nur ueber das Ergebnis.
 
 ### Die Verteilungen
 
@@ -778,9 +797,9 @@ auf einen Attraktor konvergiert — alle Laeufe finden dieselbe
 Schaltung, nur unterschiedlich kodiert. Bei add3 ist das **nicht**
 der Fall: 32/32 strukturell verschieden.
 
-Das ist ein staerkerer Befund als die 97%-Erfolgsrate allein. Er
-zeigt: der GA findet nicht einen gluecklichen Fund und wiederholt
-ihn, sondern 32 unabhaengige Loesungen.
+Das ist ein staerkerer Befund als die 97%-Erfolgsrate allein — aber
+er belegt Genotyp-Diversitaet, nicht Strategie-Diversitaet. Ob die
+32 Genome unterschiedliche Suchpfade repraesentieren, ist offen.
 
 ### Was der Befund nicht zeigt
 
@@ -806,9 +825,14 @@ Paar fuer Paar analysiert. An welchen Test-Paaren scheitern sie?
 | 7+7 | 111+111 | 8/21 |
 | 3+3 | 011+011 | 4/21 |
 
-Erwartung bei Zufall (uniform ueber 16 Test-Paare): 4.00 Fehler pro
-Paar. Tatsaechliches Maximum: **16**. Das ist **4x ueber Zufall** —
-kein Rauschen, sondern ein struktureller Befund.
+Die naive Uniform-Erwartung (4.00 Fehler pro Paar bei 16 Test-Paaren
+und 21 nicht-geloesten Genomen) liegt deutlich unter dem beobachteten
+Maximum von 16. Das ist ein **Hinweis auf strukturierte Schwierigkeit**,
+kein Beweis: die richtige Nullhypothese waere ein Permutationstest
+innerhalb jedes fehlgeschlagenen Genoms (Fehler zufaellig auf die 16
+Paare verteilen, dann zaehlen, wie oft jedes Paar getroffen wird).
+Dieser Test steht aus. Die Konzentration auf 1+7 und 5+3 ist aber so
+deutlich, dass ein Zufallsbefund unwahrscheinlich ist.
 
 ### Was die Top-5-Paare gemeinsam haben
 
@@ -840,9 +864,18 @@ Bei 3 Bit gibt es weniger lange Carry-Ketten. Das Maximum ist 2 Bit
 (7+7). Bei 4 Bit sind es 3-4 Bit (7+7 braucht 3 Stufen). Die Kette
 wird laenger, die Falle tiefer, die Fitness-Landschaft flacher.
 
-Das erklaert die Saettigung bei ~44%: Nicht die Kapazitaet (30 Knoten
-reichen fuer einen 4-Bit-Addierer) ist die Grenze, sondern die
-Tiefe der Carry-Kette, die der GA nicht findet.
+Das ist eine **plausible Erklaerung** fuer die Saettigung bei ~44%:
+Nicht die Kapazitaet (30 Knoten reichen fuer einen 4-Bit-Addierer,
+das Handgenom braucht 12), sondern die Tiefe der Carry-Kette koennte
+die Grenze sein.
+
+**Kausal ist das nicht nachgewiesen.** Dass ein handgebautes Genom mit
+12 Knoten existiert, zeigt nur, dass 30 Knoten *prinzipiell* reichen.
+Es zeigt nicht, dass die Evolution diesen Loesungsbereich mit ihrer
+Fitnessfunktion und ihren Operatoren gut erreicht. Der gezielte Test
+waere, die Fitness fuer laengere Carry-Ketten schrittweise zu
+gewichten und zu messen, ob die Loesungsrate steigt. Das ist nicht
+gemacht.
 
 ## Crib-Test: Vorwissen ist kein Vorteil bei Addierern
 
