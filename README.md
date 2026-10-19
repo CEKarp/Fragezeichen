@@ -1020,9 +1020,9 @@ dieses Repo fuer diese Frage hat.
 
 ## Ausblick: Von Schaltungen zu einer evolvierten Sprache
 
-Dieser Abschnitt stammt aus einer externen Review ("Luna") und ist **nicht**
-Teil dieses Projekts. Er ordnet ein, was hier fehlt, und schlaegt einen
-konkreten naechsten Schritt vor.
+Dieser Abschnitt ordnet ein, was in diesem Projekt **nicht** gemacht wurde,
+und schlaegt einen konkreten naechsten Schritt vor. Er ist Ausblick,
+nicht Teil der berichteten Experimente.
 
 ### Die zentrale Unterscheidung
 
@@ -1038,7 +1038,9 @@ es macht den naechsten Schritt sichtbar.
 ### Drei Stufen (auseinanderzuhalten)
 
 1. **Programme evolutionieren** (Stand dieses Projekts): CGP mit fester
-   Basis-Sprache. Loest add3 zu 97%, add4 zu 43%. Abgeschlossen.
+   Basis-Sprache. Loest add3 zu 97% [84%, 99%] (30 Knoten, 300k Evals,
+   32 Seeds) und add4 zu 43% [33%, 53%] (30 Knoten, 1Mio Evals, 3 Splits
+   x 32 Seeds, gepoolt). Abgeschlossen.
 
 2. **Wiederverwendbare Module entdecken**: Haeufige aktive Teilgraphen aus
    geloesten Genomen extrahieren und als benannte Bausteine verfuegbar
@@ -1046,30 +1048,47 @@ es macht den naechsten Schritt sichtbar.
    Evolution nuetzliche Teilstrukturen wieder, oder erfindet sie jedes Mal
    neu?
 
-3. **Die Sprache selbst evolutionieren**: Der Algorithmus darf nicht nur
-   Bausteine verwenden, sondern die Grammatik veraendern — Produktionsregeln
-   hinzufuegen, entfernen, zusammenfuehren. Das ist ein anderes Framework
-   (Grammatical Evolution, Ryan 1998), nicht mehr CGP.
+3. **Die Grammatik selbst evolutionieren**: Der Algorithmus veraendert die
+   verfuegbaren Produktionsregeln oder Sprachbausteine — nicht nur deren
+   Verwendung. Das ist ein eigenes Experiment, kein CGP mehr.
+
+   **Begriffliche Klaerung:** "Grammatical Evolution" (Ryan 1998) ist eine
+   verwandte Methode, bei der typischerweise eine **vorgegebene** Grammatik
+   zur Erzeugung von Programmen verwendet wird. Sie ist **nicht**
+   gleichbedeutend mit dem Evolutionieren dieser Grammatik. Wer Stufe 3
+   meint, sollte von "Evolution der Grammatik" oder "evolutionierbarer DSL"
+   sprechen, nicht von "Grammatical Evolution".
 
 Ein GA auf Stufe 2 ist noch keine Sprach-Evolution. Erst Stufe 3 verdient
-den Namen. Die Unterscheidung ist wichtig, weil "selbstadaptiv" im
-Projekttitel nur Stufe 1 meint.
+den Namen — und auch dort nur, wenn die Grammatik tatsaechlich veraendert
+wird, nicht nur die Programme darin. "Selbstadaptiv" im Projekttitel meint
+nur Stufe 1 (Parameter-Anpassung innerhalb fester Sprache).
 
 ### Die kleinste sinnvolle Erweiterung: Modulentdeckung
 
 Bevor man eine Sprache evolutioniert, muss man wissen, ob Evolution
 ueberhaupt wiederverwendbare Teilstrukturen findet.
 
-`tools_duplicates.py` hat gezeigt, dass die 32 geloesten add3-Genome
-strukturell verschieden sind (32/32 unique tt_hash). Aber sind sie
-**funktional redundant**? Berechnen verschiedene Genome dieselben
-Zwischenfunktionen an verschiedenen Positionen? Wenn ja, gibt es eine
-natuerliche Modulbibliothek, die der GA wiederentdeckt. Wenn nein, ist
-jede Loesung idiosynkratisch — dann gibt es nichts zu modularisieren.
+`tools_duplicates.py` hat gezeigt: 32/32 unique `tt_hash`. Was der Hash
+genau kodiert: die sortierte Multimenge der Wahrheitstabellen aller
+**aktiven** Knoten eines Genoms. Zwei Genome mit gleichem Hash berechnen
+also dieselbe Menge an Zwischenfunktionen. Einzigartige Hashes belegen
+damit **Vielfalt auf Funktionsebene** — nicht zwingend unterschiedliche
+Graphstrukturen (zwei Genome mit gleichen Funktionen, aber anderer
+Verdrahtung haetten denselben Hash).
 
-Das ist eine Frage an die **vorhandenen** Daten, kein neues Experiment.
-Ein Vergleich der Knoten-Wahrheitstabellen ueber alle 32 Genome wuerde
-sie beantworten.
+Das ist ein staerkerer Befund als reine Graphvielfalt, aber er beantwortet
+die Modulfrage **nicht vollstaendig**. Wiederkehrende Knotenfunktionen
+sind ein Hinweis auf moegliche Module, aber ein Modul ist mehr als eine
+einzelne Funktion: es hat Ein- und Ausgaenge, eine Schnittstelle, und muss
+sich auf neue Aufgaben uebertragen lassen. Eine haeufige Zwischenfunktion
+kann beim Transfer nuetzlich sein — oder auch nicht.
+
+**Eine erste Teilfrage** laesst sich mit den vorhandenen Daten untersuchen:
+gibt es Knotenfunktionen, die in mehreren der 32 Genome unabhaengig
+vorkommen? Wenn ja, waere das ein Kandidat fuer eine Modulbibliothek. Wenn
+nein, ist jede Loesung funktional idiosynkratisch und es gibt nichts zu
+modularisieren.
 
 ### Der 24-Stunden-Prototyp
 
@@ -1080,12 +1099,21 @@ daraus eine Kandidatenbibliothek. Vergleiche dann:
 - **A:** CGP mit den urspruenglichen Grundgattern (Baseline, bekannt)
 - **B:** CGP mit Grundgattern + extrahierten Modulen (neue Bedingung)
 
-Teste beide mit denselben Seeds und demselben Evaluationsbudget auf add3
-und **einer vorher zurueckgehaltenen Aufgabe** (z.B. add4). Miss
-Korrektheit, aktive Gatter, Tiefe und wie oft jedes Modul verwendet wird.
+Teste beide mit demselben Evaluationsbudget. **Wichtig: nicht auf add3
+allein auswerten.** Wenn die Module aus geloesten add3-Genomen stammen,
+ist ein erneuter add3-Test — auch mit anderen Seeds — dieselbe Aufgabe
+mit anderem Zufall, kein unabhaengiger Test.
 
-Wichtig: Module duerfen nicht anhand der zurueckgehaltenen Testaufgabe
-ausgewaehlt werden. Sonst misst man Overfitting auf die Zielaufgabe.
+Stattdessen:
+
+- **Modulentdeckung** aus einem Teil der add3-Laeufe (z.B. 16 Seeds).
+- **Evaluation** auf neuen add3-Laeufen, die nicht zur Entdeckung
+  dienten (die anderen 16 Seeds), und auf **add4 als Transferaufgabe**.
+- **add4 darf nicht zur Modulauswahl oder -anpassung verwendet werden.**
+  Sonst misst man Overfitting auf die Transferaufgabe.
+
+Miss Korrektheit, aktive Gatter, Tiefe und wie oft jedes Modul verwendet
+wird — getrennt fuer add3 und add4.
 
 Ein positiver Befund waere nicht bloss "B loest mehr", sondern:
 **B findet bei vergleichbarer Korrektheit kompaktere Loesungen, und die
