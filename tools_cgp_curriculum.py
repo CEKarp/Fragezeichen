@@ -1,6 +1,7 @@
+import os
 import random
 
-N_NODES = 18
+N_NODES = int(os.environ.get("CGP_NODES", 18))
 GENOME_BITS = 10 * N_NODES
 M = (1 << 64) - 1
 
