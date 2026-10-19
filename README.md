@@ -251,3 +251,37 @@ Vergleicher; add2/add3/add4 als Additionen). 50.000 Evals, POP=30,
 3. **Metrik-Warnung:** balanced accuracy gibt bei stark unausgeglichenen
    Klassen (ne3: 56/8) auch fuer Zufallsgenome hohe Werte (0.79).
    Die absoluten Zahlen sind nur relativ aussagekraeftig, nicht absolut.
+
+## Kapazitaet vs. Suchstrategie: 18 vs. 30 Knoten
+
+Gleiche Matrix, gleiches Budget (50k Evals, POP=30, 5 Seeds), aber
+CGP_NODES=30 statt 18. Die Frage: liegt die Grenze an der Kapazitaet
+oder an der Suche?
+
+| Task | 18K Median | 30K Median | 18K Max | 30K Max | 18K gel. | 30K gel. |
+|------|-----------|-----------|---------|---------|----------|----------|
+| ne3 | 0.7857 | 0.9286 | 0.9286 | 0.9286 | 0/5 | 0/5 |
+| gt2 | 0.8667 | 0.9000 | 0.9500 | 0.9500 | 0/5 | 0/5 |
+| gt3 | 0.8810 | 0.8810 | 0.8810 | 0.9286 | 0/5 | 0/5 |
+| add2 | 0.8750 | **1.0000** | 1.0000 | 1.0000 | 2/5 | **3/5** |
+| add3 | 0.8750 | 0.8750 | 0.9167 | 0.9583 | 0/5 | 0/5 |
+| add4 | 0.8715 | 0.8554 | 0.8958 | 0.9251 | 0/5 | 0/5 |
+
+### Antwort: beides
+
+1. **Kapazitaet hilft.** add2 wird mit 30 Knoten zuverlaessiger geloest
+   (3/5 statt 2/5, Median 1.0). add3 und add4 kommen naeher an 1.0
+   (Max 0.9583 bzw. 0.9251).
+
+2. **Kapazitaet reicht nicht.** 67% mehr Knoten bringen keine Loesung
+   fuer add3/add4. Der letzte Sprung auf 1.0 bleibt aus.
+
+3. **Der Preis von mehr Knoten.** add4-Median sinkt leicht (0.8715 auf
+   0.8554): groesserer Suchraum bei gleicher Population. Der Max steigt,
+   der Median sinkt - einige Seeds finden bessere Loesungen, andere
+   verlieren sich.
+
+Die Kletter-Klippe verschiebt sich mit mehr Kapazitaet, verschwindet
+aber nicht. Das ist konsistent mit der gt3-Beobachtung: der GA kommt
+nah heran (61/64, 59/64), aber der letzte Sprung braucht mehr als
+mehr Platz.
