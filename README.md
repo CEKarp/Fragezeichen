@@ -21,9 +21,11 @@ einem ueberraschenden Durchbruch.
 - **Fitness-Design ist der entscheidende Hebel.** Hamming-Distanz ist
   deceptive (Konstanten gewinnen), balanced accuracy nicht. Der Wechsel
   loeste den ersten Sprung aus.
-- **Ein negatives Ergebnis ist oft ein Debugging-Problem, keine Grenze
-  der Methode.** Der erste Reflex war "der GA ist zu schwach". Vier
-  Sackgassen spaeter: es waren zwei Bugs und ein Budgetproblem.
+- **Mehrere vermeintliche Methodengrenzen waren in diesem Projekt
+  Implementierungsfehler.** Der erste Reflex war "der GA ist zu
+  schwach". Vier Sackgassen spaeter: es waren zwei Bugs und ein
+  Budgetproblem. Ob das oft so ist, ist damit nicht gesagt — nur,
+  dass es hier mehrfach so war.
 
 ## Was das nicht ist
 
@@ -670,8 +672,9 @@ Das ist die wichtigste Erkenntnis. Nicht "der GA ist zu schwach"
 ist die richtige Antwort auf ein negatives Ergebnis, sondern:
 **"welche Implementierungsdetails limitieren ihn?"**
 
-Ein negativer Befund ist oft ein Debugging-Problem, keine Grenze
-der Methode.
+In diesem Projekt erwiesen sich mehrere vermeintliche Methodengrenzen
+als Implementierungsfehler. Ob das oft so ist, ist damit nicht
+gesagt — nur, dass es hier mehrfach so war.
 
 ### Nachtrag: Konfidenzintervalle
 
