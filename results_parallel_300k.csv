@@ -1,0 +1,3 @@
+task,nodes,budget,seeds,solved_train,solved_test,train_median,test_median
+add3,30,300000,32,32,31,1.0000,1.0000
+add4,30,300000,32,20,5,0.9946,0.9087
