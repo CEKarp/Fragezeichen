@@ -1,0 +1,16 @@
+sim_build/
+*.vcd
+*.fst
+*.vvp
+results.xml
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+results.json
+
+.vscode/
+.idea/
+.DS_Store
