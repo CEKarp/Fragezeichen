@@ -703,6 +703,51 @@ Was die Zahlen nicht aendern: add3 ist geloest, add4 ist machbar
 aber nicht zuverlaessig, und der Unterschied zwischen beiden ist
 gross genug, um nicht Zufall zu sein.
 
+## Crib-Test: Vorwissen ist kein Vorteil bei Addierern
+
+Die Urspungsidee des Projekts war die Enigma-Metapher: Die Frauen in
+Bletchley Park hatten Cribs (bekannte Klartextstuecke), und die Frage
+war, ob ein Crib einem GA hilft, wie er den Enigma-Frauen geholfen hat.
+
+`tools_crib.py` gibt dem GA eine bekannte Teilfunktion der Addition als
+Fitness-Bonus: `s0 = A0 ^ B0` (das niedrigste Summenbit). Der GA darf
+sie verletzen, aber es kostet Fitness. Getestet auf add3 und add4.
+
+| Task | Crib-Bonus | geloest | Rate |
+|------|-----------|---------|------|
+| add3 | 0.0 (blind) | 31/32 | 96.9% |
+| add3 | 0.1 | 32/32 | 100% |
+| add4 | 0.0 (blind) | 15/32 | 46.9% |
+| add4 | 0.1 | 16/32 | 50.0% |
+
+**Der Crib hilft nicht.** Der Unterschied ist 1 Seed auf beiden
+Aufgaben — statistisch identisch.
+
+### Warum Crib bei Addierern redundant ist
+
+Der GA findet die Struktur `s0 = A0 ^ B0` sowieso, weil sie die
+einfachste Teilfunktion der Addition ist. Der decodierte GA-Addierer
+(siehe `tools_decode.py`) zeigt das: `out0 = k6 = s0` ist die erste
+Zeile der evolvierten Schaltung, ohne dass sie belohnt wurde.
+
+Das ist der Unterschied zur Enigma: Bletchley **konnte ohne Crib nicht
+anfangen** — der Suchraum war zu gross, um ihn blind zu durchsuchen.
+Der GA bei Addierern kann blind anfangen, weil die Fitness-Landschaft
+einen Gradienten hat.
+
+### Die Lehre fuer "Mathe 2"
+
+Die urspruengliche Frage war: "Kann eine Maschine ohne Vorwissen eine
+Struktur finden, die funktioniert?" Die Antwort ist: **manchmal ja,
+aber Vorwissen ist kein automatischer Vorteil.** Bei Addierern ist es
+sogar Ballast — der Crib verzerrt die Fitness-Landschaft, ohne die
+Suche zu verbessern.
+
+Wo Cribs tatsaechlich helfen wuerden: bei Aufgaben, deren Suchraum
+ohne Vorwissen nicht zugaenglich ist (z.B. echte Enigma mit 26
+Buchstaben und 10^20 Schluesseln). Bei booleschen Funktionen mit
+64 Eingaben ist der Suchraum klein genug fuer blinde Suche.
+
 ## Herkunft: Blinde Maschine, Enigma-Frauen, Mathe 2
 
 Dieses Projekt begann nicht mit der Frage "kann ein GA Addierer bauen".
