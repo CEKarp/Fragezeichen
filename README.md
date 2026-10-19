@@ -223,3 +223,31 @@ alle Rotorpositionen durchprobieren, Crib an jeder Position testen).
 Mit 26 Buchstaben statt 16 und ohne Odometrie waere der Suchraum
 fuer den GA nochmal deutlich haerter. Die Bombe war keine
 Rechenleistung — sie war ein anderer Suchalgorithmus.
+
+## Parameter-Matrix: sechs Aufgaben, zwei Strategien
+
+Echte Aufgaben-Definitionen in `tools_tasks.py` (ne3, gt2, gt3 als
+Vergleicher; add2/add3/add4 als Additionen). 50.000 Evals, POP=30,
+5 Seeds.
+
+| Task | Zufall Median | GA Median | Delta | GA geloest |
+|------|---------------|-----------|-------|------------|
+| ne3 | 0.7857 | 0.7857 | +0.0000 | 0/5 |
+| gt2 | 0.8667 | 0.8667 | +0.0000 | 0/5 |
+| gt3 | 0.8333 | 0.8810 | +0.0477 | 0/5 |
+| add2 | 0.8125 | 0.8750 | +0.0625 | **2/5** |
+| add3 | 0.7292 | 0.8750 | **+0.1458** | 0/5 |
+| add4 | 0.7195 | 0.8715 | **+0.1520** | 0/5 |
+
+### Was die Matrix zeigt
+
+1. **Der GA-Vorteil waechst mit der Schwierigkeit.** Bei ne3 (trivial)
+   kein Unterschied, bei add3/add4 (schwer) +0.15. Der GA lohnt sich
+   am meisten, wo die Aufgabe nicht durch Glueck loesbar ist.
+
+2. **Die Kletter-Klippe bleibt.** Nur add2 wird geloest (2/5 Seeds).
+   Alle anderen Aufgaben bleiben bei 0.87-0.88, egal wie nah an 1.0.
+
+3. **Metrik-Warnung:** balanced accuracy gibt bei stark unausgeglichenen
+   Klassen (ne3: 56/8) auch fuer Zufallsgenome hohe Werte (0.79).
+   Die absoluten Zahlen sind nur relativ aussagekraeftig, nicht absolut.
